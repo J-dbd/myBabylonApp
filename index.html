@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+        <title>Babylon.js sample code</title>
+
+        <!-- Babylon.js -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.6.2/dat.gui.min.js"></script>
+        <script src="https://assets.babylonjs.com/generated/Assets.js"></script>
+        <script src="https://cdn.babylonjs.com/recast.js"></script>
+        <script src="https://cdn.babylonjs.com/ammo.js"></script>
+        <script src="https://cdn.babylonjs.com/havok/HavokPhysics_umd.js"></script>
+        <script src="https://cdn.babylonjs.com/cannon.js"></script>
+        <script src="https://cdn.babylonjs.com/Oimo.js"></script>
+        <script src="https://cdn.babylonjs.com/earcut.min.js"></script>
+        <script src="https://cdn.babylonjs.com/babylon.js"></script>
+        <script src="https://cdn.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
+        <script src="https://cdn.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
+        <script src="https://cdn.babylonjs.com/postProcessesLibrary/babylonjs.postProcess.min.js"></script>
+        <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.js"></script>
+        <script src="https://cdn.babylonjs.com/serializers/babylonjs.serializers.min.js"></script>
+        <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+        <script src="https://cdn.babylonjs.com/inspector/babylon.inspector.bundle.js"></script>
+
+        <style>
+            html, body {
+                overflow: hidden;
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+
+            #renderCanvas {
+                width: 100%;
+                height: 100%;
+                touch-action: none;
+            }
+            
+            #canvasZone {
+                width: 100%;
+                height: 100%;
+            }
+        </style>
+    </head>
+<body>
+    <div id="canvasZone"><canvas id="renderCanvas"></canvas></div>
+    <script>
+        var canvas = document.getElementById("renderCanvas");
+
+        var startRenderLoop = function (engine, canvas) {
+            engine.runRenderLoop(function () {
+                if (sceneToRender && sceneToRender.activeCamera) {
+                    sceneToRender.render();
+                }
+            });
+        }
+
+        var engine = null;
+        var scene = null;
+        var sceneToRender = null;
+        var createDefaultEngine = function() { return new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true,  disableWebGL2Support: false}); };
+        class Playground {
+            static CreateScene(engine, canvas) {
+                // This creates a basic Babylon Scene object (non-mesh)
+                var scene = new BABYLON.Scene(engine);
+                // This creates and positions a free camera (non-mesh)
+                /** FreeCamera : 이 카메라는 WASD 또는 화살표 키를 사용하여 이동하고, 마우스로 방향을 조정하거나 회전할 수 있습니다.
+                 *  이 카메라는 3D 공간에서 자유롭게 이동할 수 있는 카메라로, 사용자의 입력에 따라 원하는 방향으로 이동하거나 회전할 수 있습니다.
+                 * 초기 위치는 (0, 5, -10)이며, 이는 카메라가 x축과 z축에 대해 중심에서 10의 거리에 있고,
+                 * y축(위아래)으로는 5만큼 떨어진 곳에 위치하게 됩니다.
+                 * 이 카메라를 사용하면 3D 공간에서 자유롭게 움직이면서 다양한 각도에서 장면을 관찰할 수 있습니다.
+                */
+                //var camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 5, -10), scene);
+                /**
+                 * BABYLON.ArcRotateCamera : 이 카메라는 'Arc Rotate'라는 용어에서 알 수 있듯이,
+                 * 특정 점 주위를 회전하는 카메라입니다. 이 카메라는 주로 객체를 다양한 각도에서 관찰할 때 사용됩니다.
+                 * 첫 번째 예에서는 카메라가 y축을 중심으로 90도 회전하고, 반지름이 10인 원을 따라 회전합니다.
+                 */
+                //var camera = new BABYLON.ArcRotateCamera("camera", 0, Math.PI/2, 10, BABYLON.Vector3.Zero(), scene);
+                /**
+                 * BABYLON.ArcRotateCamera (with BABYLON.Tools.ToRadians) : 이 카메라는 두 번째 예제와 비슷하지만,
+                 * 회전 각도를 라디안으로 변환하는 함수를 사용합니다.
+                 * 이는 개발자가 각도를 더 직관적으로 이해하고 조작할 수 있게 도와줍니다.
+                 * 이 예에서는 카메라가 x축으로 90도, y축으로 65도 회전합니다.
+                 */
+                var camera = new BABYLON.ArcRotateCamera("camera", BABYLON.Tools.ToRadians(90), BABYLON.Tools.ToRadians(65), 10, BABYLON.Vector3.Zero(), scene);
+                // This targets the camera to scene origin
+                //camera.setTarget(BABYLON.Vector3.Zero());
+                // This attaches the camera to the canvas
+                camera.attachControl(canvas, true);
+                // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
+                var light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), scene);
+                // Default intensity is 1. Let's dim the light a small amount
+                light.intensity = 0.7;
+                // // Our built-in 'sphere' shape. Params: name, options, scene
+                // var sphere = BABYLON.MeshBuilder.CreateSphere("sphere", {diameter: 2, segments: 32}, scene);
+                // // Move the sphere upward 1/2 its height
+                // sphere.position.y = 1;
+                // Our built-in 'ground' shape. Params: name, options, scene
+                var ground = BABYLON.MeshBuilder.CreateGround("ground", { width: 6, height: 6 }, scene);
+                //color
+                const groundMaterial = new BABYLON.StandardMaterial("ground material", scene);
+                groundMaterial.diffuseColor = BABYLON.Color3.Red();
+                ground.material = groundMaterial;
+                let groundTexture = new BABYLON.Texture(Assets.textures.checkerboard_basecolor_png.rootUrl, scene);
+                groundMaterial.diffuseTexture = groundTexture;
+                BABYLON.SceneLoader.ImportMesh("", Assets.meshes.Yeti.rootUrl, Assets.meshes.Yeti.filename, scene, function (newMeshes) {
+                    newMeshes[0].scaling = new BABYLON.Vector3(0.1, 0.1, 0.1);
+                });
+                return scene;
+            }
+        }
+        createScene = function() { return Playground.CreateScene(engine, engine.getRenderingCanvas()); }
+                window.initFunction = async function() {
+                    
+                    
+                    
+                    var asyncEngineCreation = async function() {
+                        try {
+                        return createDefaultEngine();
+                        } catch(e) {
+                        console.log("the available createEngine function failed. Creating the default engine instead");
+                        return createDefaultEngine();
+                        }
+                    }
+
+                    window.engine = await asyncEngineCreation();
+        if (!engine) throw 'engine should not be null.';
+        startRenderLoop(engine, canvas);
+window.scene = createScene();};
+        initFunction().then(() => {sceneToRender = scene                    
+        });
+
+        // Resize
+        window.addEventListener("resize", function () {
+            engine.resize();
+        });
+    </script>
+</body>
+</html>
